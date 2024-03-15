@@ -1,0 +1,53 @@
+% Define graph edges
+edge(a, b, 2).
+edge(a, c, 3).
+edge(b, d, 5).
+edge(b, e, 4).
+edge(c, f, 6).
+edge(c, g, 7).
+
+% Implement Best First Search algorithm
+best_first_search(Start, Goal, Path) :-
+    best_first_search_path([Path], [[Start]], Goal).
+
+% Base case: If the current node is the goal, return the path
+best_first_search_path([CurrentPath | _], _, Goal) :-
+    CurrentPath = [Goal | _].
+
+% Recursive case: Explore neighbors of the current node
+best_first_search_path([CurrentPath | RestPaths], Visited, Goal) :-
+    CurrentPath = [CurrentNode | _],
+    findall(NewPath,
+            (edge(CurrentNode, NextNode, _),
+             \+ member(NextNode, Visited),
+             append(CurrentPath, [NextNode], NewPath)),
+            NewPaths),
+    append(RestPaths, NewPaths, AllPaths),
+    sort_paths(AllPaths, SortedPaths),
+    best_first_search_path(SortedPaths, [CurrentNode | Visited], Goal).
+
+% Sort paths based on heuristic (in this case, the edge cost)
+sort_paths(Paths, SortedPaths) :-
+    predsort(compare_path, Paths, SortedPaths).
+
+compare_path(>, Path1, Path2) :-
+    estimated_cost(Path1, Cost1),
+    estimated_cost(Path2, Cost2),
+    Cost1 > Cost2.
+compare_path(<, Path1, Path2) :-
+    estimated_cost(Path1, Cost1),
+    estimated_cost(Path2, Cost2),
+    Cost1 =< Cost2.
+
+% Define heuristic function (in this case, just the cost of the last edge)
+estimated_cost(Path, Cost) :-
+    last_edge_cost(Path, Cost).
+
+last_edge_cost(Path, Cost) :-
+    reverse(Path, ReversedPath),
+    ReversedPath = [LastNode | _],
+    append(_, [SecondLastNode, LastNode], ReversedPath),
+    edge(SecondLastNode, LastNode, Cost).
+
+% Example query:
+% best_first_search(a, d, Path).

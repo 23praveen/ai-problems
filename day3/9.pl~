@@ -1,0 +1,45 @@
+% Define facts and rules
+
+% Known facts
+has_symptom(john, fever).
+has_symptom(john, cough).
+has_symptom(jane, rash).
+
+% Define rules
+has_disease(X, flu) :-
+    has_symptom(X, fever),
+    has_symptom(X, cough).
+has_disease(X, measles) :-
+    has_symptom(X, fever),
+    has_symptom(X, rash).
+
+% Define forward chaining predicate
+forward_chaining :-
+    % Check all individuals
+    forall(individual(X), (
+        % Check all diseases
+        forall(disease(Disease), (
+            % If the individual doesn't already have the disease, but satisfies its symptoms, assert it
+            (   \+ has_disease(X, Disease),
+                call(Disease, X)
+            ),
+            assert(has_disease(X, Disease))
+        ))
+    )),
+    % Print all derived conclusions
+    findall(Disease-Individual, has_disease(Individual, Disease), Conclusions),
+    print_conclusions(Conclusions).
+
+% Define a predicate to print the conclusions
+print_conclusions([]).
+print_conclusions([Disease-Individual|Rest]) :-
+    format('~w has ~w.~n', [Individual, Disease]),
+    print_conclusions(Rest).
+
+% Define individuals
+individual(john).
+individual(jane).
+
+% Define diseases
+disease(flu).
+disease(measles).
